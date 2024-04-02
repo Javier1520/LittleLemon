@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.db import IntegrityError
 from django.contrib.auth.models import User, Group
 from .models import *
 from rest_framework.response import Response
@@ -127,3 +128,23 @@ class SingleDeliveryCrewView(generics.DestroyAPIView):
         user = get_object_or_404(User, pk=pk)
         delivery_crew_group.user_set.remove(user)
         return Response({'message': 'User removed from delivery crew group'})
+    
+class CartView(generics.ListCreateAPIView):
+    serializer_class = CartSerializer
+    permission_classes = (IsAuthenticated,)
+    
+    def get_queryset(self):
+        user = self.request.user
+        return Cart.objects.filter(user=user)
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response({'message': 'Item already in cart'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, *args, **kwargs):
+        user = self.request.user
+        cart = Cart.objects.filter(user=user)
+        cart.delete()
+        return Response({'message': 'Cart cleared'})
