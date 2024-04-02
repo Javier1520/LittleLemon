@@ -46,3 +46,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ('id', 'order', 'order_id', 'menuitem', 'menuitem_id', 'quantity', 'unit_price', 'price')
+        
+class ManagerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email')
