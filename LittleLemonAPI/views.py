@@ -68,7 +68,7 @@ class SingleMenuItemView(generics.RetrieveUpdateDestroyAPIView):
 # User group managent
 class ManagerView(generics.ListCreateAPIView):
     queryset = User.objects.filter(groups__name='Manager')
-    serializer_class = ManagerSerializer
+    serializer_class = GroupSerializer
     permission_classes = (IsAuthenticated,)
     
     def get(self, request, *args, **kwargs):
@@ -86,7 +86,7 @@ class ManagerView(generics.ListCreateAPIView):
     
 class SingleManagerView(generics.DestroyAPIView):
     queryset = User.objects.filter(groups__name='Manager')
-    serializer_class = ManagerSerializer
+    serializer_class = GroupSerializer
     permission_classes = (IsAuthenticated,)
 
     def destroy(self, request, pk, *args, **kwargs):
@@ -96,4 +96,34 @@ class SingleManagerView(generics.DestroyAPIView):
         user = get_object_or_404(User, pk=pk)
         manager_group.user_set.remove(user)
         return Response({'message': 'User removed from manager group'})
-        
+
+class DeliveryCrewView(generics.ListCreateAPIView):
+    queryset = User.objects.filter(groups__name='Delivery crew')
+    serializer_class = GroupSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.groups.filter(name='Manager').exists():
+            return Response({'message': 'Only managers can access'}, status=status.HTTP_403_FORBIDDEN)
+        return super().get(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.groups.filter(name='Manager').exists():
+            return Response({'message': 'Only managers can access'}, status=status.HTTP_403_FORBIDDEN)
+        delivery_crew_group = Group.objects.get(name='Delivery crew')
+        user = get_object_or_404(User, username=request.data.get('username'))
+        delivery_crew_group.user_set.add(user)
+        return Response({'message': 'User added to delivery crew group'})
+    
+class SingleDeliveryCrewView(generics.DestroyAPIView):
+    queryset = User.objects.filter(groups__name='Delivery crew')
+    serializer_class = GroupSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def destroy(self, request, pk, *args, **kwargs):
+        if not request.user.groups.filter(name='Manager').exists():
+            return Response({'message': 'Only managers can access'}, status=status.HTTP_403_FORBIDDEN)
+        delivery_crew_group = Group.objects.get(name='Delivery crew')
+        user = get_object_or_404(User, pk=pk)
+        delivery_crew_group.user_set.remove(user)
+        return Response({'message': 'User removed from delivery crew group'})
