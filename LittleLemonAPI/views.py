@@ -182,3 +182,22 @@ class OrderView(generics.ListCreateAPIView):
             cart.delete()        
         
         return serializer.instance
+    
+class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request, pk, *args, **kwargs):
+        if request.user.groups.filter(name='Manager').exists():
+            exac_order = Order.objects.get(pk=pk)
+            serializer = OrderSerializer(exac_order)
+            return Response(serializer.data, status=status.HTTP_200_OK)            
+        elif request.user.groups.filter(name='Delivery crew').exists():
+            orders_to_deliver = Order.objects.filter(delivery_crew=request.user, pk=pk)
+            serializer = OrderSerializer(orders_to_deliver, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            customer_orders = Order.objects.filter(user=request.user)
+            serializer = OrderSerializer(customer_orders, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
