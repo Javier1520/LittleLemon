@@ -32,10 +32,16 @@ class CartSerializer(serializers.ModelSerializer):
         
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    user_id = serializers.IntegerField(read_only=True)  
+    total = serializers.DecimalField(max_digits=6, decimal_places=2, read_only=True)
+    status = serializers.BooleanField(read_only=True)
+    delivery_crew = serializers.ReadOnlyField(source='delivery_crew.username')
+    delivery_crew_id = serializers.IntegerField(read_only=True)
+    date = serializers.DateTimeField(read_only=True, format="%d/%m/%Y - %H:%M:%S")
     
     class Meta:
         model = Order
-        fields = ('id', 'user', 'delivery_crew', 'status', 'total', 'date')
+        fields = ('id', 'user','user_id', 'delivery_crew','delivery_crew_id', 'status', 'total', 'date')        
         
 class OrderItemSerializer(serializers.ModelSerializer):
     order = OrderSerializer(read_only=True)

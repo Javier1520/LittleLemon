@@ -148,3 +148,37 @@ class CartView(generics.ListCreateAPIView):
         cart = Cart.objects.filter(user=user)
         cart.delete()
         return Response({'message': 'Cart cleared'})
+    
+class OrderView(generics.ListCreateAPIView):    
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request, *args, **kwargs):        
+        if request.user.groups.filter(name='Manager').exists():                     
+            return super().get(request, *args, **kwargs)
+        elif request.user.groups.filter(name='Delivery crew').exists():
+            orders_to_deliver = Order.objects.filter(delivery_crew=request.user)
+            serializer = OrderSerializer(orders_to_deliver, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:            
+            customer_orders = Order.objects.filter(user=request.user)            
+            serializer = OrderSerializer(customer_orders, many=True)            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def perform_create(self, serializer):               
+        carts = Cart.objects.filter(user=self.request.user)
+        total = sum(cart.price for cart in carts)        
+        
+        order = serializer.save(total=total, user=self.request.user)
+        for cart in carts:
+            order_item = OrderItem.objects.create(
+                order=order,
+                menuitem=cart.menuitem,
+                quantity=cart.quantity,
+                unit_price=cart.unit_price,
+                price=cart.price
+            )            
+            cart.delete()        
+        
+        return serializer.instance
