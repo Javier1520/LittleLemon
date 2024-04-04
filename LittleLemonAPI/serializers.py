@@ -46,12 +46,6 @@ class CartSerializer(serializers.ModelSerializer):
         validated_data['price'] = menuitem.price * quantity
         return super().create(validated_data)
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['unit_price'] = instance.unit_price
-        representation['price'] = instance.price
-        return representation
-
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     user_id = serializers.IntegerField(read_only=True)
@@ -60,21 +54,20 @@ class OrderSerializer(serializers.ModelSerializer):
     delivery_crew = serializers.ReadOnlyField(source='delivery_crew.username')
     delivery_crew_id = serializers.IntegerField(read_only=True)
     date = serializers.DateTimeField(read_only=True, format="%d/%m/%Y - %H:%M:%S")
-    order_items = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Order
-        fields = ('id', 'user','user_id', 'delivery_crew','delivery_crew_id', 'status', 'total', 'date', 'order_items')
+        fields = ('id', 'user','user_id', 'delivery_crew','delivery_crew_id', 'status', 'total', 'date')
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    order = OrderSerializer(read_only=True)
+    #order = OrderSerializer(read_only=True)
     order_id = serializers.IntegerField(write_only=True)
     menuitem = MenuItemSerializer(read_only=True)
     menuitem_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ('id', 'order', 'order_id', 'menuitem', 'menuitem_id', 'quantity', 'unit_price', 'price')
+        fields = ('id', 'order_id', 'menuitem', 'menuitem_id', 'quantity', 'unit_price', 'price')
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:

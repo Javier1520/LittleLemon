@@ -156,15 +156,21 @@ class OrderView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         if request.user.groups.filter(name='Manager').exists():
-            return super().get(request, *args, **kwargs)
+            orders = Order.objects.all()
         elif request.user.groups.filter(name='Delivery crew').exists():
-            orders_to_deliver = Order.objects.filter(delivery_crew=request.user)
-            serializer = OrderSerializer(orders_to_deliver, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            orders = Order.objects.filter(delivery_crew=request.user)
         else:
-            customer_orders = Order.objects.filter(user=request.user)
-            serializer = OrderSerializer(customer_orders, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            orders = Order.objects.filter(user=request.user)
+
+        # Fetch order items for each order
+        orders_with_items = []
+        for order in orders:
+            order_items = OrderItem.objects.filter(order=order)
+            order_item_serializer = OrderItemSerializer(order_items, many=True)
+            order_data = OrderSerializer(order).data
+            order_data['order_items'] = order_item_serializer.data
+            orders_with_items.append(order_data)
+        return Response(orders_with_items, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         carts = Cart.objects.filter(user=self.request.user)
@@ -198,6 +204,6 @@ class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
             serializer = OrderSerializer(orders_to_deliver, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            customer_orders = Order.objects.filter(user=request.user)
+            customer_orders = Order.objects.filter(user=request.user, pk=pk)
             serializer = OrderSerializer(customer_orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
