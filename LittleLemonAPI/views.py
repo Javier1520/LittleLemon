@@ -1,11 +1,14 @@
 from django.shortcuts import render, get_object_or_404
+from datetime import datetime
 from django.db import IntegrityError
+from django.core.paginator import Paginator, EmptyPage
 from django.contrib.auth.models import User, Group
 from .models import *
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .serializers import *
+from .filters import *
 from rest_framework import status
 
 # Category views
@@ -41,7 +44,14 @@ class SingleCategoryView(generics.RetrieveUpdateDestroyAPIView):
 class MenuItemView(generics.ListCreateAPIView):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
+    filterset_class = MenuItemFilter
     permission_classes = (IsAuthenticated,)
+    ordering_fields = ['price', 'title', 'featured', 'category']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        filters = self.filterset_class(self.request.query_params, queryset=queryset)
+        return filters.qs
 
     def create(self, request, *args, **kwargs):
         if not request.user.groups.filter(name='Manager').exists():
@@ -153,6 +163,7 @@ class OrderView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = (IsAuthenticated,)
+    ordering_fields = ['user_id', 'delivery_crew', 'status', 'total', 'date']
 
     def get(self, request, *args, **kwargs):
         if request.user.groups.filter(name='Manager').exists():
@@ -162,6 +173,35 @@ class OrderView(generics.ListCreateAPIView):
         else:
             orders = Order.objects.filter(user=request.user)
 
+        status_param = request.query_params.get('status')
+        date_param = request.query_params.get('date')
+        ordering = request.query_params.get('ordering')
+        perpage = min(int(request.query_params.get('perpage', default=3)),5)
+        page = request.query_params.get('page', default=1)
+        if ordering:
+            ordering_fields = ordering.split(',')
+            orders = orders.order_by(*ordering_fields)
+        if date_param:
+            try:
+                # Convert string date to datetime.date object
+                date = datetime.strptime(date_param, '%d-%m-%Y').date()
+                start_date = datetime.combine(date, datetime.min.time())
+                end_date = datetime.combine(date, datetime.max.time()).replace(microsecond=0)
+                orders = orders.filter(date__range=(start_date, end_date))
+            except ValueError:
+                return Response({'message': 'Invalid date format. Use DD-MM-YYYY'}, status=status.HTTP_400_BAD_REQUEST)
+        if status_param:
+            try:
+                status_param = serializers.BooleanField().to_internal_value(status_param)
+                orders = orders.filter(status=status_param)
+            except serializers.ValidationError:
+                return Response({'message': 'Invalid value for status parameter'}, status=status.HTTP_400_BAD_REQUEST)
+
+        paginator = Paginator(orders, per_page=perpage)
+        try:
+            orders = paginator.page(number=page)
+        except EmptyPage:
+            orders = []
         # Fetch order items for each order
         orders_with_items = []
         for order in orders:
