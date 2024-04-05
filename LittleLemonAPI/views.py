@@ -196,7 +196,7 @@ class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
 
     def get(self, request, pk, *args, **kwargs):
         if request.user.groups.filter(name='Manager').exists():
-            exac_order = Order.objects.get(pk=pk)
+            exac_order = get_object_or_404(Order,pk=pk)
             serializer = OrderSerializer(exac_order)
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.user.groups.filter(name='Delivery crew').exists():
@@ -204,6 +204,36 @@ class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
             serializer = OrderSerializer(orders_to_deliver, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            customer_orders = Order.objects.filter(user=request.user, pk=pk)
-            serializer = OrderSerializer(customer_orders, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            customer_order = get_object_or_404(Order, user=request.user, pk=pk)
+            order_serializer = OrderSerializer(customer_order)
+            customer_orderitems = OrderItem.objects.filter(order=pk)
+            orderitem_serializer = OrderItemSerializer(customer_orderitems, many=True)
+            order_data = order_serializer.data
+            order_data['order_items'] = orderitem_serializer.data
+            return Response(order_data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, pk, *args, **kwargs):
+        if request.user.groups.filter(name='Manager').exists():
+            if 'delivery_crew_id' in request.data:
+                order = get_object_or_404(Order, pk=pk)
+                delivery = get_object_or_404(User, pk=request.data['delivery_crew_id'])
+                if delivery.groups.filter(name='Delivery crew').exists():
+                    order.delivery_crew_id = request.data['delivery_crew_id']
+                    order.save()
+                    return Response(OrderSerializer(order).data, status= status.HTTP_200_OK)
+                return Response({'message': 'Invalid delivery crew'}, status=status.HTTP_400_BAD_REQUEST)
+        elif request.user.groups.filter(name='Delivery crew').exists():
+            order = get_object_or_404(Order.objects.filter(delivery_crew=request.user, pk=pk))
+            if order.status == 0:
+                order.status = 1
+                order.save()
+                return Response({'message': 'Order status updated to "Delivered"'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Order status already updated'}, status=status.HTTP_200_OK)
+        else:
+            return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if not request.user.groups.filter(name='Manager').exists():
+            return Response({'message': 'Only managers can delete orders'}, status=status.HTTP_403_FORBIDDEN)
+
+        return super().destroy(request, *args, **kwargs)
