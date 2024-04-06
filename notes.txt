@@ -1,0 +1,12 @@
+superuser = javier     password = boot
+
+user                    password
+best_deliver            boot12345
+customer1234            boot12345
+dev                     boot12345
+ebros                   boot12345
+food_enjoyer            boot12345
+food_lover              boot12345
+gala                    boot12345
+mob                     boot12345
+ron                     boot12345                   (manager)
