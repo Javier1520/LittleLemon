@@ -6,9 +6,11 @@ from django.contrib.auth.models import User, Group
 from .models import *
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import UserRateThrottle
 from rest_framework import generics
 from .serializers import *
 from .filters import *
+from .throttles import FifteenCallsPerMinute
 from rest_framework import status
 
 # Category views
@@ -42,6 +44,7 @@ class SingleCategoryView(generics.RetrieveUpdateDestroyAPIView):
 
 # MenuItem views
 class MenuItemView(generics.ListCreateAPIView):
+    throttle_classes = (FifteenCallsPerMinute,)
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
     filterset_class = MenuItemFilter
@@ -163,6 +166,7 @@ class OrderView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = (IsAuthenticated,)
+    throttle_classes = (FifteenCallsPerMinute,)
     ordering_fields = ['user_id', 'delivery_crew', 'status', 'total', 'date']
 
     def get(self, request, *args, **kwargs):

@@ -9,7 +9,7 @@ urlpatterns = [
     path('cart/menu-items', views.CartView.as_view(), name='cart'),
     path('orders', views.OrderView.as_view(), name='orders'),
     path('orders/<int:pk>', views.SingleOrderView.as_view(), name='single-order'),
-    
+
     #M groups
     path('groups/manager/users', views.ManagerView.as_view(), name='manager-users'),
     path('groups/manager/users/<int:pk>', views.SingleManagerView.as_view(), name='single-manager'),

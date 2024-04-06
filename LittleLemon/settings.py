@@ -140,6 +140,17 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 3,
     'MAX_ORDERS_PER_PAGE' : 4,
 
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '2/minute',
+        'user': '10/minute',
+        'fifteen': '15/minute',
+    },
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     )
