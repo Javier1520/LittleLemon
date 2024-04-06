@@ -11,6 +11,7 @@ from rest_framework import generics
 from .serializers import *
 from .filters import *
 from .throttles import FifteenCallsPerMinute
+from .paginations import MenuItemPagination
 from rest_framework import status
 
 # Category views
@@ -50,6 +51,7 @@ class MenuItemView(generics.ListCreateAPIView):
     filterset_class = MenuItemFilter
     permission_classes = (IsAuthenticated,)
     ordering_fields = ['price', 'title', 'featured', 'category']
+    pagination_class = MenuItemPagination
 
     def get_queryset(self):
         queryset = super().get_queryset()
