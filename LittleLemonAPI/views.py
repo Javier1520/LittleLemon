@@ -18,7 +18,12 @@ from rest_framework import status
 class CategoryView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         if not request.user.groups.filter(name='Manager').exists():
@@ -49,9 +54,14 @@ class MenuItemView(generics.ListCreateAPIView):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
     filterset_class = MenuItemFilter
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
     ordering_fields = ['price', 'title', 'featured', 'category']
     pagination_class = MenuItemPagination
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def get_queryset(self):
         queryset = super().get_queryset()
