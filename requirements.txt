@@ -1,4 +1,0 @@
-django=5.0.4
-djangorestframework=3.15.1
-mysqlclient=2.2.4
-djoser=2.2.2
