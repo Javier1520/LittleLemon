@@ -14,7 +14,7 @@ from .throttles import FifteenCallsPerMinute
 from .paginations import MenuItemPagination
 from rest_framework import status
 
-# Category views
+# region Category
 class CategoryView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -48,7 +48,7 @@ class SingleCategoryView(generics.RetrieveUpdateDestroyAPIView):
 
         return super().destroy(request, *args, **kwargs)
 
-# MenuItem views
+# region MenuItem
 class MenuItemView(generics.ListCreateAPIView):
     throttle_classes = (FifteenCallsPerMinute,)
     queryset = MenuItem.objects.all()
@@ -91,7 +91,7 @@ class SingleMenuItemView(generics.RetrieveUpdateDestroyAPIView):
 
         return super().destroy(request, *args, **kwargs)
 
-# User group managent
+# region Manager
 class ManagerView(generics.ListCreateAPIView):
     queryset = User.objects.filter(groups__name='Manager')
     serializer_class = GroupSerializer
@@ -123,6 +123,7 @@ class SingleManagerView(generics.DestroyAPIView):
         manager_group.user_set.remove(user)
         return Response({'message': 'User removed from manager group'})
 
+# region Delivery crew
 class DeliveryCrewView(generics.ListCreateAPIView):
     queryset = User.objects.filter(groups__name='Delivery crew')
     serializer_class = GroupSerializer
@@ -154,6 +155,7 @@ class SingleDeliveryCrewView(generics.DestroyAPIView):
         delivery_crew_group.user_set.remove(user)
         return Response({'message': 'User removed from delivery crew group'})
 
+# region Cart
 class CartView(generics.ListCreateAPIView):
     serializer_class = CartSerializer
     permission_classes = (IsAuthenticated,)
@@ -174,6 +176,7 @@ class CartView(generics.ListCreateAPIView):
         cart.delete()
         return Response({'message': 'Cart cleared'})
 
+# region Orders
 class OrderView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
