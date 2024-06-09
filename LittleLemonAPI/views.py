@@ -16,7 +16,7 @@ from rest_framework import status
 
 # region Category
 class CategoryView(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     # permission_classes = (IsAuthenticated,)
 
@@ -93,7 +93,7 @@ class SingleMenuItemView(generics.RetrieveUpdateDestroyAPIView):
 
 # region Manager
 class ManagerView(generics.ListCreateAPIView):
-    queryset = User.objects.filter(groups__name='Manager')
+    queryset = User.objects.filter(groups__name='Manager').order_by('id')
     serializer_class = GroupSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -125,7 +125,7 @@ class SingleManagerView(generics.DestroyAPIView):
 
 # region Delivery crew
 class DeliveryCrewView(generics.ListCreateAPIView):
-    queryset = User.objects.filter(groups__name='Delivery crew')
+    queryset = User.objects.filter(groups__name='Delivery crew').order_by('id')
     serializer_class = GroupSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -162,7 +162,7 @@ class CartView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Cart.objects.filter(user=user)
+        return Cart.objects.filter(user=user).order_by('id')
 
     def create(self, request, *args, **kwargs):
         try:
