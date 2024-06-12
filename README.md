@@ -253,7 +253,7 @@ All requests and responses use JSON format.
 ```
 
 
-## Installation
+## Installation without docker
 ### Install pipenv
 ```
 python3 -m pip install --user pipenv
@@ -265,4 +265,8 @@ pipenv shell
 ### Install dependencies
 ```
 pipenv install
+```
+### Run server
+```
+python3 manage.py runserver
 ```
