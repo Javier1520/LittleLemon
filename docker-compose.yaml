@@ -4,9 +4,9 @@ services:
     volumes:
       - littlelemon_volume:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB: littlelemon_db
-      - POSTGRES_USER: littlelemon_user
-      - POSTGRES_PASSWORD: littlelemon_password
+      - POSTGRES_DB='littlelemon_db'
+      - POSTGRES_USER='littlelemon_user'
+      - POSTGRES_PASSWORD='littlelemon_password'
 
   web:
     build: .

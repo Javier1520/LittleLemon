@@ -9,6 +9,7 @@ djangorestframework = "3.15.1"
 djoser = "2.2.3"
 django-filter = "24.2"
 django-cors-headers = "4.3.1"
+psycopg2-binary = "2.9.9"
 
 [dev-packages]
 

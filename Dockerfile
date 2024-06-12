@@ -7,7 +7,7 @@ RUN mkdir /code
 WORKDIR /code
 
 COPY . /code/
-RUN pip install pipenv
-RUN pipenv install --deploy
+RUN pip install pipenv \
+    && pipenv install --system --deploy
 
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

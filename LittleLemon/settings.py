@@ -99,20 +99,6 @@ DATABASES = {
     }
 }
 
-# At startup
-while not DATABASE_READY:
-  try:
-    django.db.connections['default'].ensure_connection()
-  except Exception:
-    time.sleep(1)
-  else:
-    DATABASE_READY = True
-
-# Run migrations now
-if not DATABASE_READY:
-  print('Applying migrations...')
-  os.system('python manage.py migrate')
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -153,6 +139,22 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DATABASE_READY = False
+
+# At startup
+while not DATABASE_READY:
+  try:
+    django.db.connections['default'].ensure_connection()
+  except Exception:
+    time.sleep(1)
+  else:
+    DATABASE_READY = True
+
+# Run migrations now
+if not DATABASE_READY:
+  print('Applying migrations...')
+  os.system('python manage.py migrate')
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
