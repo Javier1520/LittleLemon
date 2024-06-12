@@ -2,6 +2,76 @@
 
 This API provides endpoints for managing categories, menu items, carts, orders, and user groups in a restaurant management system.
 
+# Instructions to Run the Application
+
+## Ensure Docker and Docker Compose are installed:
+
+- **Docker:** [Get Docker](https://docs.docker.com/get-docker/)
+- **Docker Compose:** [Install Docker Compose](https://docs.docker.com/compose/install/)
+
+### Development's versions:
+- Docker version 26.1.1, build 4cf5afa
+- Docker Compose version v2.27.1
+
+## Build and run the application:
+
+1. Open a terminal.
+2. Navigate to the project directory (where the `Dockerfile` and `docker-compose.yaml` are located).
+3. Run the following command:
+
+    ```sh
+    docker-compose up --build
+    ```
+
+    This command will build the Docker images and start the containers. The `--build` flag forces the build of the images before starting the containers.
+
+## Access the application:
+
+Once the containers are up and running, you can access the Django application at [http://localhost:8000](http://localhost:8000).
+
+## Additional Information
+
+### Environment Variables:
+
+- `PYTHONDONTWRITEBYTECODE`: Prevents Python from writing `.pyc` files to disk.
+- `PYTHONUNBUFFERED`: Ensures that Python output is logged directly to the terminal without buffering.
+
+### Volumes:
+
+The `volumes` directive in `docker-compose.yaml` ensures that any changes in your local directory are reflected inside the container immediately. This is useful for development purposes.
+
+### Database:
+
+- The `db` service uses the official PostgreSQL image.
+- The environment variables set the database name, user, and password.
+- The `volumes` directive ensures that the database data is persisted even when the container is restarted.
+
+## Useful Commands
+
+- **Stopping the containers:**
+
+    ```sh
+    docker-compose down
+    ```
+
+- **Rebuilding the containers:**
+
+    ```sh
+    docker-compose up --build
+    ```
+
+- **Accessing the Django shell:**
+
+    ```sh
+    docker-compose run web python manage.py shell
+    ```
+
+- **Creating a superuser:**
+
+    ```sh
+    docker-compose run web python manage.py createsuperuser
+    ```
+
 ## Authentication Endpoints
 
 The authentication endpoints are provided by the `djoser` library and are included in the API URLs.
